@@ -99,19 +99,9 @@ x = sample(counts$number_loans[counts$predom_race=="w"], size = 12, replace = FA
 y = sample(counts$number_loans[counts$predom_race=="b"], size = 3, replace = FALSE)
 t.test(x,y)
 
-# T-Test conducted without sampling as well
-t.test(number_loans~predom_race, 
-       data = counts,
-       var.equal = FALSE)
-
 # Check the effect size
 CohenD(x,y)
 
 
 ```
-# Overall Conclusion
-Although there are statistical differences in the amount being issued in loans as well as the number of loans issued in predominantly white and black zip codes, the statistical effect is small. From this data we know that for the most part the loans and the amount of them were issued similarly within the two different community types. However, we still cannot be sure if the SBA's original goal to assist minority business owners. 
-
-
-
 
