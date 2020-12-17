@@ -95,9 +95,20 @@ var.test(number_loans~predom_race,
 # https://rpubs.com/nmccurtin/comparingtwomeans 
 
 # Use the sample() function to pull a random sample equal to 10% of each population
-x = sample(counts$number_loans[counts$predom_race=="w"], size = 12, replace = FALSE)
-y = sample(counts$number_loans[counts$predom_race=="b"], size = 3, replace = FALSE)
+x = sample(counts$number_loans[counts$predom_race=="w"], size = 12, replace = FALSE) #White
+y = sample(counts$number_loans[counts$predom_race=="b"], size = 3, replace = FALSE) #Black
+
+# Learn more about the data
+Desc(x)
+Desc(y)
+
+#Conduct the T-test
 t.test(x,y)
+
+# T-Test conducted without sampling as well
+t.test(number_loans~predom_race, 
+       data = counts,
+       var.equal = FALSE)
 
 # Check the effect size
 CohenD(x,y)
