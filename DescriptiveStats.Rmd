@@ -1,0 +1,189 @@
+---
+title: "Descriptive Statistics"
+author: "Amina Lampkin"
+date: "10/13/2020"
+output: html_document
+---
+# 
+```{r echo=FALSE}
+# Import libraries
+library(dplyr)
+library(readr)
+
+# Open the demographic and loan file
+dl = read.csv(file = "/Users/aminasymone/Documents/JOUR355/CleanedFiles/loan_and_demo_moe_clean_102020.csv",
+              header = TRUE,
+              sep = ",")
+demo = read.csv(file = "/Users/aminasymone/Documents/JOUR355/CleanedFiles/clean_demographics_101520.csv",
+                header = TRUE,
+                sep = ",")
+
+# Select the columns of interest for the demographic
+demo = select(demo, zip, estimate_pop, pct_white, pct_black, est_med_inc)
+
+```
+# Zip Codes by Loan Amount
+
+```{r}
+# Aggregate by zip code for avg loan amount
+avg_loans <- aggregate(x = dl$LoanAmount,
+                       by = list(dl$zip),
+                       FUN = mean)
+
+# Sort by descending order
+avg_loans = arrange(avg_loans, desc(x))
+
+# Rename the columns and join the demographic data
+avg_loans = rename(avg_loans, avg_loan = x)
+avg_loans = rename(avg_loans, zip = Group.1)
+
+# Create a file for the aggregated columns
+write.csv(avg_loans, file = "/Users/aminasymone/Documents/JOUR355/Analysis/entire_zip_avgs.csv")
+
+
+avg_loans = left_join(avg_loans, 
+                      demo,
+                      by = "zip")
+
+# Pull the top and bottom 10 statistics
+write.csv(head(avg_loans, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_top_10.csv" )
+write.csv(tail(avg_loans, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_bottom_10.csv" )
+
+```
+
+# Predominantly White Zip Codes
+In this chunk of code, we'll be pulling the zip codes with a majority white population (>50%) and finding out what funding they received. 
+```{r}
+# Pull the zip code records with a majority population of white people
+white_zips = filter(dl, pct_white>=50.0)
+write.csv(white_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/white_zip_codes.csv")
+
+
+# Find the sums of loans in each zip code
+avg_white_zips = aggregate(x = white_zips$LoanAmount, 
+                           by = list(white_zips$zip),
+                           FUN = mean)
+
+#Sort in descending order by average loan amount
+avg_white_zips = arrange(avg_white_zips, desc(x))
+
+# Rename the columns and join the demographic data
+avg_white_zips = rename(avg_white_zips, avg_loan = x)
+avg_white_zips = rename(avg_white_zips, white_zip = Group.1)
+
+# Create a file for the aggregated columns
+write.csv(avg_white_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/white_zip_avgs.csv")
+
+avg_white_zips = left_join(avg_white_zips, 
+                      demo,
+                      by = c("white_zip" = "zip"))
+write.csv(white_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/white_zip_codes.csv")
+
+# Pull the top and bottom 10 statistics
+write.csv(head(avg_white_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_white_top_10.csv" )
+write.csv(tail(avg_white_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_white_bottom_10.csv" )
+
+```
+
+# Predominantly Black Zip Codes
+In this chunk of code, we'll be pulling the zip codes with a majority Black population (>50%) and finding out what funding they received. 
+
+```{r}
+# Pull the zip code records with a majority population of Black people
+black_zips = filter(dl, pct_black>=50.0)
+write.csv(black_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/black_zip_codes.csv")
+
+
+# Find the sums of loans in each zip code
+avg_black_zips = aggregate(x = black_zips$LoanAmount, 
+                           by = list(black_zips$zip),
+                           FUN = mean)
+
+#Sort in descending order by average loan amount
+avg_black_zips = arrange(avg_black_zips, desc(x))
+
+# Rename the columns and join the demographic data
+avg_black_zips = rename(avg_black_zips, avg_loan = x)
+avg_black_zips = rename(avg_black_zips, black_zip = Group.1)
+
+# Create a file for the aggregated columns
+write.csv(avg_black_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/black_zip_avgs.csv")
+
+avg_black_zips = left_join(avg_black_zips, 
+                      demo,
+                      by = c("black_zip" = "zip"))
+write.csv(black_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/black_zip_codes.csv")
+
+# Pull the top and bottom 10 statistics
+write.csv(head(avg_black_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_black_top_10.csv" )
+write.csv(tail(avg_black_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_black_bottom_10.csv" )
+
+```
+
+## Majority minority zip codes
+In this chunk of code, we'll be pulling the zip codes with a majority minority population (percent white < 50%) and finding out what funding they received. 
+
+```{r}
+# Pull the zip code records with a majority population of Black people
+minority_zips = filter(dl, pct_white < 50.0)
+write.csv(minority_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/minority_zips.csv")
+
+
+# Find the sums of loans in each zip code
+avg_minority_zips = aggregate(x = minority_zips$LoanAmount, 
+                           by = list(minority_zips$zip),
+                           FUN = mean)
+
+#Sort in descending order by average loan amount
+avg_minority_zips = arrange(avg_minority_zips, desc(x))
+
+# Rename the columns and join the demographic data
+avg_minority_zips = rename(avg_minority_zips, avg_loan = x)
+avg_minority_zips = rename(avg_minority_zips, min_zip = Group.1)
+
+# Create a file for the aggregated columns
+write.csv(avg_minority_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/minority_zip_avgs.csv")
+
+
+avg_minority_zips = left_join(avg_minority_zips, 
+                      demo,
+                      by = c("min_zip" = "zip"))
+write.csv(minority_zips, file = "/Users/aminasymone/Documents/JOUR355/Analysis/minority_zips.csv")
+
+
+# Pull the top and bottom 10 statistics
+write.csv(head(avg_minority_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_minority_top_10.csv" )
+write.csv(tail(avg_minority_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/avg_minority_bottom_10.csv" )
+
+```
+
+# Summary Stats
+In this chunk of code we will be developing the summary statistics for the entire dataset, the Black zip codes, and minority zip codes.  
+```{r}
+library(ggplot2)
+
+## Entire Dataset
+summary(dl)
+### Top and Bottom 10 Loans
+arrange(dl, desc(dl$LoanAmount))
+write.csv(head(dl, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/top_10_loans.csv")
+write.csv(tail(dl, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/bottom_10_loans.csv")
+
+## Black zip codes
+summary(black_zips)
+### Top and Bottom 10 Loans
+arrange(black_zips, desc(black_zips$LoanAmount))
+write.csv(head(black_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/black_zips_top_10_loans.csv")
+write.csv(tail(black_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/black_zips_bottom_10_loans.csv")
+
+## Minority zip codes
+summary(minority_zips)
+### Top and Bottom 10 Loans
+arrange(minority_zips, desc(minority_zips$LoanAmount))
+write.csv(head(minority_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/minority_zips_top_10_loans.csv")
+write.csv(tail(minority_zips, 10), file = "/Users/aminasymone/Documents/JOUR355/Analysis/minority_zips_bottom_10_loans.csv")
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

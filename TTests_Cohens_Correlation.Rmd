@@ -1,0 +1,117 @@
+---
+title: "Hypotheses Testing"
+author: "Amina Lampkin"
+date: "10/22/2020"
+output: html_document
+---
+
+## Load the data into R
+```{r}
+
+# Load the necessary libraries
+library(tidyverse)
+library(dplyr)
+library(DescTools)
+library(lattice) # Create a stacked histogram
+
+# Turn off scientific notation
+options(scipen=999)
+
+# Loans issued in majority white zip codes
+white_file = read.csv(file = "/Users/aminasymone/Documents/JOUR355/Analysis/Zip Codes by Race:Ethnicity/white_zip_codes.csv", 
+                       header = TRUE)
+# Loans issued in majority Black zip codes
+black_file = read.csv(file = "/Users/aminasymone/Documents/JOUR355/Analysis/Zip Codes by Race:Ethnicity/black_zip_codes.csv",
+                       header = TRUE)
+
+# View the descriptive stats for the loan amounts
+Desc(white_file$LoanAmount)
+Desc(black_file$LoanAmount)
+
+
+```
+
+## T-Test sampling for the loan amounts
+Need to create two random samples from each dataset. Each will have a sample size of 10% of the population.
+```{r}
+
+# Use the sample() function to pull a random sample less than or equal to 10% of each population
+w_loans = sample(white_file$LoanAmount, size = 4382, replace = FALSE)
+b_loans = sample(black_file$LoanAmount, size = 954, replace = FALSE)
+
+# Learn more about the data
+Desc(w_loans)
+Desc(b_loans)
+```
+
+## T-Test for the difference between the loan amounts
+```{r}
+# Check the assumptions
+
+# Create a histogram
+histogram(w_loans)
+histogram(b_loans)
+
+# Not normally distributed but have similar skews
+
+# Check if the variances are the same
+# http://www.sthda.com/english/wiki/f-test-compare-two-variances-in-r
+var.test(w_loans, b_loans,
+         alternative = "two.sided")
+# The variances are different
+
+# Conduct the t-test
+# https://rpubs.com/nmccurtin/comparingtwomeans 
+t.test(w_loans, b_loans)
+
+# Check for the effect
+CohenD(w_loans, b_loans)
+
+```
+
+# T-Test for the difference between the number of loans issued
+This will be a t-test to compare the mean number of loans issued in predominantly white zip codes and predominantly Black zip codes. 
+
+The assumptions are that they are random samples from two populations of interest, measured variable is normally distributed (not so for the white zip codes) and continuous, and the variance (and standard deviation) is the same for both populations. 
+
+```{r}
+# Import the data
+counts = read.csv(file = "/Users/aminasymone/Documents/JOUR355/Analysis/Zip Codes by Race:Ethnicity/combined_w_b_number_loans.csv",
+                  header = TRUE)
+
+# Create a histogram
+histogram(~number_loans | predom_race, 
+          data = counts,
+          layout = c(1,2))
+
+# Check if the variances are equal
+# http://www.sthda.com/english/wiki/f-test-compare-two-variances-in-r
+var.test(number_loans~predom_race,
+         data = counts,
+         alternative = "two.sided")
+# The variances are not equal
+
+# Conduct the t-test
+# https://rpubs.com/nmccurtin/comparingtwomeans 
+
+# Use the sample() function to pull a random sample equal to 10% of each population
+x = sample(counts$number_loans[counts$predom_race=="w"], size = 12, replace = FALSE)
+y = sample(counts$number_loans[counts$predom_race=="b"], size = 3, replace = FALSE)
+t.test(x,y)
+
+# T-Test conducted without sampling as well
+t.test(number_loans~predom_race, 
+       data = counts,
+       var.equal = FALSE)
+
+# Check the effect size
+CohenD(x,y)
+
+
+```
+# Overall Conclusion
+Although there are statistical differences in the amount being issued in loans as well as the number of loans issued in predominantly white and black zip codes, the statistical effect is small. From this data we know that for the most part the loans and the amount of them were issued similarly within the two different community types. However, we still cannot be sure if the SBA's original goal to assist minority business owners. 
+
+
+
+

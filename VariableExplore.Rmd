@@ -1,0 +1,127 @@
+---
+title: "ACS Variable Exploration"
+author: "Amina Lampkin"
+date: "10/1/2020"
+output: html_document
+---
+# Prepare: get the packages and data 
+```{r}
+
+# Tidycensus and Tidyverse
+library(tidycensus)
+library(tidyverse)
+
+# Define the api key
+census_api_key("c1bfa3954f446908024748a043f763beee1a2069")
+
+# View the variables for the American Community Survey
+acs_variable_list <- load_variables(2018, "acs5", cache = FALSE)
+```
+
+# Variables of interest (by zip code)
+- Total population (from RACE): B02001_001
+- Black (alone) population by zip code: B02001_003 (total)
+- White population by zip code: B02001_002
+- Sex Total (Male): B01001_002	
+- Sex Total (Female): B01001_026
+- Median income: B19326_001 (2018 inflation-adjusted)
+- Income in the past 12 months below poverty level: B17001_002 (total) (M: B17001_003) (F: B17001_017)
+
+# Calculations for each
+##  Make a list of all the variables you make, do a for loop that goes through each and calculates pct_est + pct_moe
+- Percent version of the estimate
+- Margin of error percentage (should be less than 10, shooting for less than 5) 
+
+*ZCTAs can only be requested for the entire country (not within states or counties) -- need a way to filter out a list of all the MD ZCTAs -- join this document by GEOID on the PPP data and drop off the GEOIDs that don't match (inner join)* 
+
+## Total Population
+```{r}
+# Get ACS total population
+race_pop <- get_acs(variables = "B02001_001",
+                     geography = "zcta",
+                     geometry = FALSE)%>%
+  mutate(pct_moe = moe/estimate*100)
+
+```
+
+## Black (alone) population by zip code: B02001_003 (total)
+```{r}
+# Get Black (alone) population
+zcta_black <-get_acs(variables = "B02001_003",
+                     geography = "zcta",
+                     summary_var= "B02001_001",
+                     geometry = FALSE)%>%
+  mutate(pct_moe_black = (moe/estimate)*100)%>%
+  mutate(pct_black = (estimate/summary_est)*100)
+```
+
+## White population by zip code: B02001_002
+```{r}
+# Get white (alone) population
+zcta_white <- get_acs(variables ="B02001_002",
+                      geography = "zcta",
+                      summary_var = "B02001_001",
+                      geometry= FALSE)%>%
+    mutate(pct_moe_white = (moe/estimate)*100)%>%
+    mutate(pct_white = (estimate/summary_est)*100)
+
+
+```
+## Sex Total (Male): B01001_002
+```{r}
+# Get the male population
+zcta_male <- get_acs(variables ="B01001_002",
+                      geography = "zcta",
+                      summary_var = "B02001_001",
+                      geometry= FALSE)%>%
+  mutate(pct_moe_male = (moe/estimate)*100)%>%
+  mutate(pct_male = (estimate/summary_est)*100)
+
+
+```
+## Sex Total (Famale): B01001_026
+```{r}
+# Get the female population
+zcta_female <- get_acs(variables ="B01001_026",
+                      geography = "zcta",
+                      summary_var = "B02001_001",
+                      geometry= FALSE)%>%
+    mutate(pct_moe_female = (moe/estimate)*100)%>%
+    mutate(pct_female = (estimate/summary_est)*100)
+
+
+```
+
+# Median income: B19326_001 (2018 inflation-adjusted)
+```{r}
+# Get the median income
+zcta_median_inc <- get_acs(variables = "B19326_001",
+                             geography  = "zcta",
+                             geometry = FALSE)%>%
+  mutate(pct_moe_med_inc = (moe/estimate)*100)
+```
+
+# Income in the past 12 months below poverty level: B17001_002 (total) 
+```{r}
+# Get the number of people with poverty status
+zcta_poverty <- get_acs(variables = "B17001_002",
+                             geography  = "zcta",
+                             summary_var = "B02001_001",
+                             geometry = FALSE)%>%
+  mutate(pct_moe_pov = (moe/estimate)*100)%>%
+  mutate(pct_poverty = (estimate/summary_est)*100)
+```
+# Join all the tables together to form one large table
+## Will need to rename columns so I know which estimates belong to what data subset
+```{r}
+library(dplyr)
+
+write.csv(race_pop, file = "race_pop.csv")
+write.csv(zcta_black, file = "zcta_black.csv")
+write.csv(zcta_white, file = "zcta_white.csv")
+write.csv(zcta_male, file = "zcta_male.csv")
+write.csv(zcta_female, file = "zcta_female.csv")
+write.csv(zcta_median_inc, file = "zcta_median_inc.csv")
+write.csv(zcta_poverty, file = "zcta_poverty.csv")
+
+```

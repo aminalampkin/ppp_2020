@@ -1,0 +1,36 @@
+---
+title: "JoiningDemoandLoans"
+author: "Amina Lampkin"
+date: "10/10/2020"
+output: html_document
+---
+# Join the demographics file to the loan file
+
+```{r}
+# Import the necessary libraries
+library(dplyr)
+library(readr)
+
+# Read in the CSV files
+## Need to specify data type for "zip" so they are the same and not different
+loanData = read_csv(file = "/Users/aminasymone/Documents/JOUR355/CleanedFiles/clean_md_ppp_101020.csv", 
+                    col_names = TRUE,
+                    col_types = cols(
+                        zip=col_integer()))
+demoData = read_csv(file = "/Users/aminasymone/Documents/JOUR355/CleanedFiles/clean_demographics_101020.csv",
+                    col_names = TRUE,
+                    col_types = cols(
+                      zip=col_integer()))
+```
+
+```{r}
+
+# Use a left join on the loan table
+combinedData = left_join(loanData, demoData, by = c("zip"))
+
+```
+
+```{r}
+# Export the combinedData as a CSV file
+write.csv(combinedData, file = "/Users/aminasymone/Documents/JOUR355/CleanedFiles/clean_loan_and_demo_101020.csv")
+```
